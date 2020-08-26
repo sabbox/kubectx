@@ -17,6 +17,15 @@ type SwitchOp struct {
 }
 
 func (s SwitchOp) Run(_, stderr io.Writer) error {
+
+	ok, err := namespaceExists(s.Target)
+	if err != nil {
+		return errors.Wrap(err, "failed to query if namespace exists (is cluster accessible?)")
+	}
+	if !ok {
+		return errors.Errorf("no namespace exists with name %q", s.Target)
+	}
+
 	kc := new(kubeconfig.Kubeconfig).WithLoader(kubeconfig.DefaultLoader)
 	defer kc.Close()
 	if err := kc.Parse(); err != nil {
@@ -32,12 +41,14 @@ func (s SwitchOp) Run(_, stderr io.Writer) error {
 }
 
 func switchNamespace(kc *kubeconfig.Kubeconfig, ns string) (string, error) {
+
 	ctx := kc.GetCurrentContext()
 	if ctx == "" {
 		return "", errors.New("current-context is not set")
 	}
+
 	curNS, err := kc.NamespaceOfContext(ctx)
-	if ctx == "" {
+	if curNS == "" {
 		return "", errors.New("failed to get current namespace")
 	}
 
@@ -54,14 +65,6 @@ func switchNamespace(kc *kubeconfig.Kubeconfig, ns string) (string, error) {
 		ns = prev
 	}
 
-	ok, err := namespaceExists(kc, ns)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to query if namespace exists (is cluster accessible?)")
-	}
-	if !ok {
-		return "", errors.Errorf("no namespace exists with name %q", ns)
-	}
-
 	if err := kc.SetNamespace(ctx, ns); err != nil {
 		return "", errors.Wrapf(err, "failed to change to namespace %q", ns)
 	}
@@ -76,13 +79,22 @@ func switchNamespace(kc *kubeconfig.Kubeconfig, ns string) (string, error) {
 	return ns, nil
 }
 
-func namespaceExists(kc *kubeconfig.Kubeconfig, ns string) (bool, error) {
+func namespaceExists(ns string) (bool, error) {
 	// for tests
 	if os.Getenv("_MOCK_NAMESPACES") != "" {
-		return ns == "ns1" || ns == "ns2", nil
+		return ns == "ns1" || ns == "ns2" || ns == "-", nil
 	}
 
-	clientset, err := newKubernetesClientSet(kc)
+	if ns == "-" {
+		return true, nil
+	}
+
+	kubeCfgPath, err := kubeconfig.FindKubeconfigPath()
+	if err != nil {
+		return false, errors.Wrap(err, "cannot determine kubeconfig path")
+	}
+
+	clientset, err := newWritableKubernetesClientSet(kubeCfgPath)
 	if err != nil {
 		return false, errors.Wrap(err, "failed to initialize k8s REST client")
 	}
@@ -91,6 +103,5 @@ func namespaceExists(kc *kubeconfig.Kubeconfig, ns string) (bool, error) {
 	if errors2.IsNotFound(err) {
 		return false, nil
 	}
-	return namespace != nil, errors.Wrapf(err, "failed to query "+
-		"namespace %q from k8s API", ns)
+	return namespace != nil, errors.Wrapf(err, "failed to query namespace %q from k8s API", ns)
 }

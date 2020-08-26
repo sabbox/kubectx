@@ -17,7 +17,13 @@ import (
 
 type ListOp struct{}
 
-func (op ListOp) Run(stdout, stderr io.Writer) error {
+func (op ListOp) Run(stdout, _ io.Writer) error {
+
+	allNamespaces, err := queryNamespaces()
+	if err != nil {
+		return errors.Wrap(err, "could not list namespaces (is the cluster accessible?)")
+	}
+
 	kc := new(kubeconfig.Kubeconfig).WithLoader(kubeconfig.DefaultLoader)
 	defer kc.Close()
 	if err := kc.Parse(); err != nil {
@@ -33,27 +39,28 @@ func (op ListOp) Run(stdout, stderr io.Writer) error {
 		return errors.Wrap(err, "cannot read current namespace")
 	}
 
-	ns, err := queryNamespaces(kc)
-	if err != nil {
-		return errors.Wrap(err, "could not list namespaces (is the cluster accessible?)")
-	}
-
-	for _, c := range ns {
+	for _, c := range allNamespaces {
 		s := c
 		if c == curNs {
 			s = printer.ActiveItemColor.Sprint(c)
 		}
-		fmt.Fprintf(stdout, "%s\n", s)
+		_, _ = fmt.Fprintf(stdout, "%s\n", s)
 	}
 	return nil
 }
 
-func queryNamespaces(kc *kubeconfig.Kubeconfig) ([]string, error) {
+func queryNamespaces() ([]string, error) {
+
 	if os.Getenv("_MOCK_NAMESPACES") != "" {
 		return []string{"ns1", "ns2"}, nil
 	}
 
-	clientset, err := newKubernetesClientSet(kc)
+	kubeCfgPath, err := kubeconfig.FindKubeconfigPath()
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot determine kubeconfig path")
+	}
+
+	clientset, err := newWritableKubernetesClientSet(kubeCfgPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to initialize k8s REST client")
 	}
@@ -79,14 +86,12 @@ func queryNamespaces(kc *kubeconfig.Kubeconfig) ([]string, error) {
 	return out, nil
 }
 
-func newKubernetesClientSet(kc *kubeconfig.Kubeconfig) (*kubernetes.Clientset, error) {
-	b, err := kc.Bytes()
+func newWritableKubernetesClientSet(kubeCfgPath string) (*kubernetes.Clientset, error) {
+
+	config, err := clientcmd.BuildConfigFromFlags("", kubeCfgPath)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to convert in-memory kubeconfig to yaml")
+		return nil, errors.Wrap(err, "failed to initialize REST client config")
 	}
-	cfg, err := clientcmd.RESTConfigFromKubeConfig(b)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize config")
-	}
-	return kubernetes.NewForConfig(cfg)
+
+	return kubernetes.NewForConfig(config)
 }

@@ -17,7 +17,9 @@ type StandardKubeconfigLoader struct{}
 type kubeconfigFile struct{ *os.File }
 
 func (*StandardKubeconfigLoader) Load() ([]ReadWriteResetCloser, error) {
-	cfgPath, err := kubeconfigPath()
+
+	cfgPath, err := FindKubeconfigPath()
+
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot determine kubeconfig path")
 	}
@@ -42,7 +44,8 @@ func (kf *kubeconfigFile) Reset() error {
 	return errors.Wrap(err, "failed to seek in file")
 }
 
-func kubeconfigPath() (string, error) {
+// FindKubeconfigPath resolves kube config path
+func FindKubeconfigPath() (string, error) {
 	// KUBECONFIG env var
 	if v := os.Getenv("KUBECONFIG"); v != "" {
 		list := filepath.SplitList(v)
