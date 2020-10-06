@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -68,7 +69,7 @@ func queryNamespaces() ([]string, error) {
 	var out []string
 	var next string
 	for {
-		list, err := clientset.CoreV1().Namespaces().List(metav1.ListOptions{
+		list, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{
 			Limit:    500,
 			Continue: next,
 		})
