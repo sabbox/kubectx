@@ -1,14 +1,11 @@
 module github.com/ahmetb/kubectx
 
-go 1.14
+go 1.15
 
 require (
 	facette.io/natsort v0.0.0-20181210072756-2cd4dd1e2dcb
 	github.com/fatih/color v1.9.0
-	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/google/go-cmp v0.4.0
-	github.com/google/gofuzz v1.1.0 // indirect
-	github.com/googleapis/gnostic v0.1.0 // indirect
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/mattn/go-isatty v0.0.12
 	github.com/pkg/errors v0.9.1
@@ -18,5 +15,4 @@ require (
 	k8s.io/apimachinery v0.18.9
 	k8s.io/client-go v0.18.9
 	k8s.io/utils v0.0.0-20200414100711-2df71ebbae66 // indirect
-	sigs.k8s.io/yaml v1.2.0 // indirect
 )
