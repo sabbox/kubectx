@@ -6,7 +6,8 @@ import (
 	"io"
 )
 
-const (
+// go build x -ldflags="-X main.Version=123"
+var (
 	Version = "unknown"
 )
 
