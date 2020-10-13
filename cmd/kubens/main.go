@@ -23,7 +23,7 @@ func main() {
 
 		if _, ok := os.LookupEnv(env.EnvDebug); ok {
 			// print stack trace in verbose mode
-			fmt.Fprintf(color.Error, "[DEBUG] error: %+v\n", err)
+			_, _ = fmt.Fprintf(color.Error, "[DEBUG] error: %+v\n", err)
 		}
 		defer os.Exit(1)
 	}

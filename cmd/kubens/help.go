@@ -23,8 +23,8 @@ func printUsage(out io.Writer) error {
   %PROG% <NAME>             : change the active namespace of current context
   %PROG% -                  : switch to the previous namespace in this context
   %PROG% -c, --current      : show the current namespace
-  %PROG% -h,--help          : show this message
-`
+  %PROG% -h, --help          : show this message
+  %PROG% -v, --version       : show version`
 	// TODO this replace logic is duplicated between this and kubectx
 	help = strings.ReplaceAll(help, "%PROG%", selfName())
 
