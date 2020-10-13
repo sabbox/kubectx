@@ -8,11 +8,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
-    - name: Declare some variables
-      id: vars
-      shell: bash
-      run: |
-        echo "::set-output name=GIT_TAG_DESCRIBE::$(git describe --tags)"
+      with:
+        #0 indicates all history for all branches and tags.
+        fetch-depth: 0
+#    - name: Declare some variables
+#      id: vars
+#      shell: bash
+#      run: |
+#        echo "::set-output name=GIT_TAG_DESCRIBE::$(git describe --tags)"
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
@@ -28,8 +31,6 @@ jobs:
       with:
         version: latest
         args: release --snapshot --skip-publish --rm-dist
-      env:
-        GIT_TAG: ${{ steps.get_version.outputs.GIT_TAG_DESCRIBE }}
     - name: Setup BATS framework
       run: sudo npm install -g bats
     - name: kubectx (Go) integration tests

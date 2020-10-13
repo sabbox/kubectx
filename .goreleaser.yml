@@ -19,9 +19,6 @@ builds:
     - arm64
     - ppc64le
   goarm: [6, 7]
-  ldflags:
-    - -s -w -X main.build={{.Env.GIT_TAG}}
-    - ./usemsan=-msan
 - id: kubens
   main: ./cmd/kubens
   binary: kubens
@@ -37,9 +34,6 @@ builds:
     - arm64
     - ppc64le
   goarm: [6, 7]
-  ldflags:
-    - -s -w -X main.build={{.Env.GIT_TAG}}
-    - ./usemsan=-msan
 archives:
 - id: kubectx-archive
   name_template: |-

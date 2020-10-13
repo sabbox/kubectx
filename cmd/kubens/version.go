@@ -6,9 +6,10 @@ import (
 	"io"
 )
 
-// go build x -ldflags="-X main.Version=123"
+// go build x -ldflags="-X main.version=123"
+// expected default value from goreleaser -X main.version={{.Version}}
 var (
-	Version = "unknown"
+	version = "unknown"
 )
 
 // VersionOp show app version.
@@ -19,6 +20,6 @@ func (_ VersionOp) Run(stdout, _ io.Writer) error {
 }
 
 func printVersion(out io.Writer) error {
-	_, err := fmt.Fprintf(out, "%s\n", Version)
+	_, err := fmt.Fprintf(out, "%s\n", version)
 	return errors.Wrap(err, "write error")
 }
