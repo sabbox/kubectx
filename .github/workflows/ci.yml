@@ -1,6 +1,5 @@
 name: Go implementation (CI)
 on:
-  push:
   pull_request:
 jobs:
   ci:
@@ -11,11 +10,6 @@ jobs:
       with:
         #0 indicates all history for all branches and tags.
         fetch-depth: 0
-#    - name: Declare some variables
-#      id: vars
-#      shell: bash
-#      run: |
-#        echo "::set-output name=GIT_TAG_DESCRIBE::$(git describe --tags)"
     - name: Setup Go
       uses: actions/setup-go@v1
       with:
